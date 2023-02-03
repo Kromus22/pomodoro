@@ -3,7 +3,7 @@ import { state } from "./state.js";
 import { initTodo } from "./todo.js";
 
 const init = () => {
-  //initControl();
+  initControl();
   initTodo();
 
   state.activeTodo = {

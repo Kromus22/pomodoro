@@ -1,3 +1,4 @@
+import { changeActiveBtn, stop } from "./control.js";
 import { state } from "./state.js";
 
 const titleElem = document.querySelector('.title');
@@ -31,6 +32,27 @@ const addTodo = (title) => {
   return todo;
 }
 
+export const updateTodo = (todo) => {
+  const todoList = getTodo();
+
+  const todoItem = todoList.find((item) => item.id === todo.id);
+  todoItem.title = todo.title;
+  todoItem.pomodoro = todo.pomodoro;
+
+  localStorage.setItem('pomodoro', JSON.stringify(todoList));
+}
+
+const deleteTodo = (todo) => {
+  const todoList = getTodo();
+
+  const newTodoList = todoList.filter((item) => item.id !== todo.id);
+  if (todo.id === state.activeTodo.id) {
+    state.activeTodo = newTodoList[newTodoList.length - 1];
+  }
+
+  localStorage.setItem('pomodoro', JSON.stringify(newTodoList));
+}
+
 const createTodoListItem = (todo) => {
   if (todo.id !== 'default') {
     const todoItem = document.createElement('li');
@@ -54,6 +76,30 @@ const createTodoListItem = (todo) => {
     todoItemWrapper.append(todoBtn, editBtn, delBtn);
 
     todoListElem.prepend(todoItem);
+
+    todoBtn.addEventListener('click', () => {
+      state.activeTodo = todo;
+      showTodo();
+      changeActiveBtn('work');
+      stop();
+    });
+
+    editBtn.addEventListener('click', () => {
+      todo.title = prompt('Название задачи', todo.title);
+      todoBtn.textContent = todo.title;
+      if (todo.id === state.activeTodo.id) {
+        state.activeTodo.title = todo.title;
+      }
+
+      updateTodo(todo);
+      showTodo();
+    });
+
+    delBtn.addEventListener('click', () => {
+      deleteTodo(todo);
+      showTodo();
+      todoItem.remove();
+    });
   }
 }
 
@@ -65,20 +111,25 @@ const renderTodoList = (list) => {
   todoListElem.append(newTodo);
 }
 
-const showTodo = () => {
-  titleElem.textContent = state.activeTodo.title;
-  countNum.textContent = state.activeTodo.pomodoro;
+export const showTodo = () => {
+  if (state.activeTodo) {
+    titleElem.textContent = state.activeTodo.title;
+    countNum.textContent = state.activeTodo.pomodoro;
+  } else {
+    titleElem.textContent = '';
+    countNum.textContent = 0;
+  }
 }
 
 export const initTodo = () => {
   const todoList = getTodo();
 
   if (!todoList.length) {
-    state.activeTodo = [{
+    state.activeTodo = {
       id: 'default',
       pomodoro: 0,
-      title: 'qqqqq',
-    }];
+      title: 'Помодоро',
+    };
   } else {
     state.activeTodo = todoList[todoList.length - 1];
   }
